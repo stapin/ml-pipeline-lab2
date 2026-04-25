@@ -20,6 +20,8 @@ pipeline {
         stage('Pull Model from DVC') {
             steps {
                 sh '''
+                    rm -rf dvc-venv
+
                     python3 -m venv dvc-venv
                     ls -la dvc-venv/bin/
                     which pip || echo "PIP NOT FOUND"
