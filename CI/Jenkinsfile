@@ -24,6 +24,7 @@ pipeline {
 
                     python3 -m venv dvc-venv
                     ls -la dvc-venv/bin/
+                    . dvc-venv/bin/activate
                     which pip || echo "PIP NOT FOUND"
                     ./dvc-venv/bin/pip install dvc[s3]
                     
