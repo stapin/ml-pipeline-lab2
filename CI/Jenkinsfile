@@ -21,6 +21,8 @@ pipeline {
             steps {
                 sh '''
                     python3 -m venv dvc-venv
+                    ls -la dvc-venv/bin/
+                    which pip || echo "PIP NOT FOUND"
                     ./dvc-venv/bin/pip install dvc[s3]
                     
                     dvc remote modify --local myminio access_key_id admin_dvc
