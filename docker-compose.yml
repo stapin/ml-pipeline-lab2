@@ -7,7 +7,7 @@ services:
     environment:
       - ORACLE_PASSWORD=${DB_PASSWORD}
       - APP_USER=${DB_USER}
-      - APP_PASSWORD=${DB_PASSWORD}
+      - APP_USER_PASSWORD=${DB_PASSWORD}
     ports:
       - "1521:1521"
     healthcheck:
