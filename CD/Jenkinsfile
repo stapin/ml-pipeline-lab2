@@ -5,7 +5,6 @@ pipeline {
         DOCKERHUB = credentials('dockerhub-creds')
         DB = credentials('oracle-db-creds')
         IMAGE_NAME = "amazon-rating-prediction"
-        CONTAINER_NAME = "prediction-test-server"
         DB_CONTAINER_NAME = "oracle-test-db"
     }
 
@@ -18,7 +17,6 @@ pipeline {
 
         stage('Deploy Container Locally') {
             steps {
-                sh "docker rm -f $CONTAINER_NAME || true"
                 sh "docker rm -f $DB_CONTAINER_NAME || true"
                 
                 sh "docker pull $DOCKERHUB_USR/$IMAGE_NAME:latest"
@@ -51,11 +49,10 @@ pipeline {
         }
         failure {
             echo "Tests failed!"
-            sh "docker compose logs ml-service || true"
+            sh "docker compose logs $IMAGE_NAME || true"
             sh "docker compose logs oracle-db || true"
         }
         cleanup {
-            sh "docker rm -f $CONTAINER_NAME || true"
             sh "docker compose down -v || true"
             sh "docker logout || true"
         }
