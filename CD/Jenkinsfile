@@ -3,8 +3,10 @@ pipeline {
 
     environment {
         DOCKERHUB = credentials('dockerhub-creds')
+        ORACLE = credentials('oracle-db-creds')
         IMAGE_NAME = "amazon-rating-prediction"
         CONTAINER_NAME = "prediction-test-server"
+        DB_CONTAINER_NAME = "oracle-test-db"
     }
 
     stages {
@@ -17,8 +19,10 @@ pipeline {
         stage('Deploy Container Locally') {
             steps {
                 sh "docker rm -f $CONTAINER_NAME || true"
+                sh "docker rm -f $DB_CONTAINER_NAME || true"
                 
                 sh "docker pull $DOCKERHUB_USR/$IMAGE_NAME:latest"
+                sh "docker pull gvenzl/oracle-free:slim"
 
                 script {
                     sh '''
@@ -27,8 +31,42 @@ pipeline {
                     '''
                     def JENKINS_NET = readFile('network.txt').trim()
                     echo "Jenkins находится в сети: ${JENKINS_NET}"
+
+                    sh """
+                        docker run -d \
+                        --name $DB_CONTAINER_NAME \
+                        --network ${JENKINS_NET} \
+                        -e ORACLE_PASSWORD=${ORACLE_PSW} \
+                        -e APP_USER=${ORACLE_USR} \
+                        -e APP_PASSWORD=${ORACLE_PSW} \
+                        gvenzl/oracle-free:slim
+                    """
+
+                    echo "Waiting for Oracle DB to be healthy..."
+                    sh '''
+                        for i in {1..30}; do
+                            HEALTH_STATUS=$(docker inspect --format="{{json .State.Health.Status}}" oracle-test-db)
+                            if [ "$HEALTH_STATUS" == '"healthy"' ]; then
+                                echo "Oracle DB is ready!"
+                                break
+                            fi
+                            echo "Waiting... ($i/30)"
+                            sleep 5
+                        done
+                    '''
+
+                    sh """
+                        docker run -d \
+                        --name $CONTAINER_NAME \
+                        --network ${JENKINS_NET} \
+                        -e DB_USER=${ORACLE_USR} \
+                        -e DB_PASSWORD=${ORACLE_PSW} \
+                        -e DB_HOST=$DB_CONTAINER_NAME \
+                        -e DB_PORT=1521 \
+                        -e DB_SERVICE=FREEPDB1 \
+                        $DOCKERHUB_USR/$IMAGE_NAME:latest
+                    """
                     
-                    sh "docker run -d --name $CONTAINER_NAME --network ${JENKINS_NET} $DOCKERHUB_USR/$IMAGE_NAME:latest"
                 }
                 
                 sleep 5 
@@ -64,9 +102,11 @@ pipeline {
         failure {
             echo "Tests failed!"
             sh "docker logs $CONTAINER_NAME || true"
+            sh "docker logs $DB_CONTAINER_NAME || true"
         }
         cleanup {
             sh "docker rm -f $CONTAINER_NAME || true"
+            sh "docker rm -f $DB_CONTAINER_NAME || true"
             sh "docker logout || true"
         }
     }
