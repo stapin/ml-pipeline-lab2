@@ -11,6 +11,7 @@ def run_tests():
     all_passed = True
 
     print(f"Start running {len(scenarios)} scenarios...\n")
+    print(f"Base url: {base_url}")
 
     for s in scenarios:
         print(f"Сценарий: {s['scenario_name']}")
