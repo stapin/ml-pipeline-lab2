@@ -17,7 +17,7 @@ services:
       retries: 10
   amazon-rating-prediction:
     build: .
-    container_name: rating-prediction
+    container_name: ${API_IMAGE:-rating-prediction-local}
     ports:
       - "8000:8000"
     restart: unless-stopped
