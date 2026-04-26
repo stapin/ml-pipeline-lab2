@@ -31,7 +31,11 @@ pipeline {
         stage('Run Scenario Tests') {
             steps {
                 script {
-                    withEnv(["API_URL=http://localhost:8000"]) {
+                    def CONTAINER_IP = sh(script: "docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' rating-prediction", returnStdout: true).trim()
+                    
+                    echo "API Container IP is: ${CONTAINER_IP}"
+                    
+                    withEnv(["API_URL=http://${CONTAINER_IP}:8000"]) {
                         sh '''
                             python3 -m venv venv-cd
                             . venv-cd/bin/activate
