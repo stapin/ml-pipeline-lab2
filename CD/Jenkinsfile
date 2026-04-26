@@ -20,9 +20,6 @@ pipeline {
                 sh "docker rm -f $DB_CONTAINER_NAME || true"
                 
                 sh "docker pull $DOCKERHUB_USR/$IMAGE_NAME:latest"
-
-                echo "=== DEBUG: INSPECTING PULLED IMAGE ==="
-                sh "docker run --rm $DOCKERHUB_USR/$IMAGE_NAME:latest ls -la /app/models/"
                 
                 echo "Starting infrastructure and waiting for healthchecks..."
                 sh "docker compose up -d --wait"

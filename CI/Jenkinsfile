@@ -23,16 +23,15 @@ pipeline {
                     rm -rf dvc-venv
 
                     python3 -m venv dvc-venv
+                    ls -la dvc-venv/bin/
                     . dvc-venv/bin/activate
+                    which pip || echo "PIP NOT FOUND"
                     ./dvc-venv/bin/pip install dvc[s3]
                     
                     dvc remote modify --local myminio access_key_id admin_dvc
                     dvc remote modify --local myminio secret_access_key $MINIO_SECRET
                     dvc remote modify --local myminio endpointurl http://minio:9000
                     dvc pull
-
-                    echo "=== DEBUG: AFTER DVC PULL ==="
-                    ls -la models/
                 '''
             }
         }
