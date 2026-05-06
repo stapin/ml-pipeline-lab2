@@ -38,7 +38,7 @@ class OracleDBManager:
                     """)
                     conn.commit()
                 except oracledb.DatabaseError as e:
-                    print(f"Ошибка при инициализации базы данных: {e}")
+                    print(f"Error while initializing database: {e}")
 
     def save_prediction(self, text_content: str, predicted_rating: float) -> int:
         with self._get_connection() as conn:
